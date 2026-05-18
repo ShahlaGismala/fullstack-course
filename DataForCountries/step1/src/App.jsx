@@ -1,70 +1,36 @@
-import { useState, useEffect } from 'react';
-import countryService from './services/countries';
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import Content from './components/Content'
+import CountryDetail from './components/CountryDetail'
 
-function App() {
-  const [countries, setCountries] = useState([]);
-  const [filter, setFilter] = useState('');
+const App = () => {
+  const [value, setValue] = useState('')
+  const [countries, setCountries] = useState([])
 
   useEffect(() => {
-    countryService.getAll().then(data => setCountries(data));
-  }, []);
+    axios
+      .get('https://studies.cs.helsinki.fi/restcountries/api/all')
+      .then(response => {
+        setCountries(response.data)
+      })
+  }, [])
 
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value);
-  };
+  const handleChange = (event) => {
+    setValue(event.target.value)
+  }
 
-  const filtered = countries.filter(c =>
-    c.name.common.toLowerCase().includes(filter.toLowerCase())
-  );
-
-  const renderCountries = () => {
-    if (filter === '') {
-      return null;
-    }
-
-    if (filtered.length > 10) {
-      return <p>Too many matches, specify another filter</p>;
-    } else if (filtered.length > 1) {
-      return (
-        <ul>
-          {filtered.map(c => (
-            <li key={c.cca3}>{c.name.common}</li>
-          ))}
-        </ul>
-      );
-    } else if (filtered.length === 1) {
-      const country = filtered[0];
-      return (
-        <div>
-          <h2>{country.name.common}</h2>
-          <p>Capital {country.capital}</p>
-          <p>Area {country.area}</p>
-          <h3>Languages</h3>
-          <ul>
-            {Object.values(country.languages).map(lang => (
-              <li key={lang}>{lang}</li>
-            ))}
-          </ul>
-          <img
-            src={country.flags.png}
-            alt={`Flag of ${country.name.common}`}
-            width="150"
-          />
-        </div>
-      );
-    } else {
-      return <p>No matches found</p>;
-    }
-  };
+  const countriesToShow = value === '' 
+    ? [] 
+    : countries.filter(c => c.name.common.toLowerCase().includes(value.toLowerCase()))
 
   return (
     <div>
       <div>
-        find countries <input value={filter} onChange={handleFilterChange} />
+        find countries <input value={value} onChange={handleChange} />
       </div>
-      {renderCountries()}
+      <Content countries={countriesToShow} />
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
